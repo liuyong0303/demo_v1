@@ -1,0 +1,20 @@
+{
+  "name": "demo_v1",
+  "private": true,
+  "version": "0.1.0",
+  "description": "demo_v1: 后台图书管理全栈示例（前端 React+AntD，后端 Express+SQLite）",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix server && npm install --prefix web",
+    "dev": "concurrently -n server,web -c blue,magenta \"npm run dev --prefix server\" \"npm run dev --prefix web\"",
+    "dev:server": "npm run dev --prefix server",
+    "dev:web": "npm run dev --prefix web",
+    "build": "npm run build --prefix web",
+    "start": "npm run start --prefix server",
+    "e2e": "playwright test",
+    "e2e:report": "playwright show-report tests/reports/html"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0",
+    "concurrently": "^8.2.2"
+  }
+}
