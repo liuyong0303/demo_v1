@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Descriptions, Button, Space, Spin, App as AntdApp } from 'antd';
+import { Modal, Descriptions, Button, Space, Spin, App as AntdApp, theme } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { booksApi } from '../api';
@@ -9,6 +9,7 @@ export default function BookDetailModal({ open, bookId, onClose, onEdit }) {
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState(null);
   const { message } = AntdApp.useApp();
+  const { token } = theme.useToken();
 
   useEffect(() => {
     if (!open || !bookId) return;
@@ -22,6 +23,12 @@ export default function BookDetailModal({ open, bookId, onClose, onEdit }) {
       })
       .finally(() => setLoading(false));
   }, [open, bookId, message, onClose]);
+
+  function renderStock(stock) {
+    const n = Number(stock);
+    const low = !Number.isNaN(n) && n < 10;
+    return <span style={low ? { color: token.colorError } : undefined}>{stock}</span>;
+  }
 
   return (
     <Modal
@@ -59,7 +66,7 @@ export default function BookDetailModal({ open, bookId, onClose, onEdit }) {
             <Descriptions.Item label="作者">{detail.author}</Descriptions.Item>
             <Descriptions.Item label="ISBN">{detail.isbn}</Descriptions.Item>
             <Descriptions.Item label="分类">{detail.category}</Descriptions.Item>
-            <Descriptions.Item label="库存">{detail.stock}</Descriptions.Item>
+            <Descriptions.Item label="库存">{renderStock(detail.stock)}</Descriptions.Item>
             <Descriptions.Item label="价格（元）">{Number(detail.price).toFixed(2)}</Descriptions.Item>
             <Descriptions.Item label="创建时间">{dayjs(detail.created_at).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>
             <Descriptions.Item label="更新时间">{dayjs(detail.updated_at).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>
