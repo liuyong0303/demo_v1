@@ -6,3 +6,9 @@ server/data/
 .env
 .vscode/
 .idea/
+# Playwright E2E
+tests/reports/
+tests/test-results/
+/blob-report/
+playwright-report/
+test-results/
