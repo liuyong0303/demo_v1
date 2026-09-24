@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Button, Input, Select, Table, Space, Popconfirm, Tag, Skeleton, App as AntdApp, Empty, Tooltip,
+  Button, Input, Select, Table, Space, Popconfirm, Tag, Skeleton, App as AntdApp, Empty, Tooltip, theme,
 } from 'antd';
 import { PlusOutlined, ReloadOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -11,6 +11,7 @@ import BookDetailModal from '../components/BookDetailModal';
 
 export default function BooksPage() {
   const { message, modal } = AntdApp.useApp();
+  const { token } = theme.useToken();
 
   const [query, setQuery] = useState({ keyword: '', category: '' });
   const [keywordInput, setKeywordInput] = useState('');
@@ -148,7 +149,16 @@ export default function BooksPage() {
       width: 80,
       render: (v) => <Tag color="blue">{v}</Tag>,
     },
-    { title: '库存', dataIndex: 'stock', width: 80 },
+    {
+      title: '库存',
+      dataIndex: 'stock',
+      width: 80,
+      render: (v) => {
+        const n = Number(v);
+        const low = !Number.isNaN(n) && n < 10;
+        return <span style={low ? { color: token.colorError } : undefined}>{v}</span>;
+      },
+    },
     {
       title: '价格',
       dataIndex: 'price',
