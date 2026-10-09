@@ -34,3 +34,8 @@ export const booksApi = {
   remove: (id) =>
     http.delete(`/books/${id}`).then((r) => r.data).catch((e) => { throw normalizeError(e); }),
 };
+
+export const reportsApi = {
+  overview: () =>
+    http.get('/reports/overview').then((r) => r.data).catch((e) => { throw normalizeError(e); }),
+};

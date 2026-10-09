@@ -1,9 +1,10 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout, Menu } from 'antd';
-import { BookOutlined } from '@ant-design/icons';
+import { BookOutlined, BarChartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import BooksPage from './pages/BooksPage';
+import ReportsPage from './pages/ReportsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ForbiddenPage from './pages/ForbiddenPage';
 
@@ -13,6 +14,23 @@ const { Sider, Content, Header } = Layout;
 // 非管理员应重定向到 /forbidden。
 function useIsAdmin() {
   return true;
+}
+
+const MENU_ITEMS = [
+  { key: '/books', icon: <BookOutlined />, label: '图书管理' },
+  { key: '/reports', icon: <BarChartOutlined />, label: '图书报表' },
+];
+
+function getPageTitle(pathname) {
+  if (pathname.startsWith('/reports')) return '图书报表';
+  if (pathname.startsWith('/books')) return '图书管理';
+  return 'Demo 后台';
+}
+
+function getSelectedKey(pathname) {
+  if (pathname.startsWith('/reports')) return '/reports';
+  if (pathname.startsWith('/books')) return '/books';
+  return pathname;
 }
 
 function AppLayout() {
@@ -29,19 +47,20 @@ function AppLayout() {
         <Menu
           theme="dark"
           mode="inline"
-          selectedKeys={[location.pathname.startsWith('/books') ? '/books' : location.pathname]}
+          selectedKeys={[getSelectedKey(location.pathname)]}
           onClick={({ key }) => navigate(key)}
-          items={[{ key: '/books', icon: <BookOutlined />, label: '图书管理' }]}
+          items={MENU_ITEMS}
         />
       </Sider>
       <Layout>
         <Header style={{ background: '#fff', padding: '0 24px', fontSize: 16, fontWeight: 600 }}>
-          图书管理
+          {getPageTitle(location.pathname)}
         </Header>
         <Content style={{ margin: 16 }}>
           <Routes>
             <Route path="/" element={<Navigate to="/books" replace />} />
             <Route path="/books" element={<BooksPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
             <Route path="/forbidden" element={<ForbiddenPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
