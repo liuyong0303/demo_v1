@@ -4,18 +4,7 @@ const { CATEGORIES, validateBookPayload, toExternal, normalizeISBN } = require('
 
 const router = express.Router();
 
-// TODO(auth): 接入管理员鉴权中间件；目前 demo 环境下默认放行，
-// 在生产环境应在此处校验登录态与角色，未通过则返回 401/403。
-function requireAdmin(req, res, next) {
-  // 鉴权接入点示例：
-  // const user = req.user;
-  // if (!user) return res.status(401).json({ code: 'Unauthorized', message: '未登录' });
-  // if (user.role !== 'admin') return res.status(403).json({ code: 'Forbidden', message: '你没有访问该页面的权限' });
-  next();
-}
-
-router.use(requireAdmin);
-
+// auth middleware is applied globally in index.js; /api/books* is admin-only
 // 分类枚举（便于前端拉取）
 router.get('/categories', (req, res) => {
   res.json({ list: CATEGORIES });
