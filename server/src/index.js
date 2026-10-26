@@ -3,6 +3,7 @@ const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const booksRouter = require('./routes.books');
+const reportsRouter = require('./routes.reports');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,6 +20,7 @@ app.use((req, _res, next) => {
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/books', booksRouter);
+app.use('/api/reports', reportsRouter);
 
 // 生产模式下托管前端构建产物
 if (isProd) {
