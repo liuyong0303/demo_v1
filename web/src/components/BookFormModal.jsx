@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Form, Input, InputNumber, Select, App as AntdApp } from 'antd';
+import { Modal, Form, Input, InputNumber, Select, Radio, App as AntdApp } from 'antd';
 import { booksApi } from '../api';
 import { CATEGORY_OPTIONS, FIELD_LABELS, PLACEHOLDER_COVER } from '../constants';
 
@@ -11,11 +11,27 @@ const INITIAL_VALUES = {
   stock: 0,
   price: 0,
   cover_url: '',
+  is_alive: 'unknown', // 'unknown'=未知, 'alive'=在世, 'deceased'=已故
 };
 
 function norm(v) {
   return (v ?? '').toString().trim();
 }
+
+// 作者状态规整：内部表单用 'alive'/'deceased'/'unknown'（避免 null 作为 Radio value 的选中问题），
+// 提交时映射为 1/0/null
+function normalizeIsAliveValue(v) {
+  if (v === 'alive' || v === 1 || v === true || v === '1') return 1;
+  if (v === 'deceased' || v === 0 || v === false || v === '0') return 0;
+  return null;
+}
+// 将接口/初始值 (1/0/null) 映射为表单值 ('alive'/'deceased'/'unknown')
+function toAliveFormValue(v) {
+  if (v === 1) return 'alive';
+  if (v === 0) return 'deceased';
+  return 'unknown';
+}
+
 
 // ISBN 校验（去连字符后 10/13 位数字）
 function validateISBN(_, value) {
@@ -64,6 +80,7 @@ export default function BookFormModal({ open, mode, initialBook, onCancel, onSav
         stock: initialBook.stock ?? 0,
         price: initialBook.price ?? 0,
         cover_url: initialBook.cover_url || '',
+        is_alive: toAliveFormValue(initialBook.is_alive),
       });
     } else {
       form.setFieldsValue(INITIAL_VALUES);
@@ -78,6 +95,7 @@ export default function BookFormModal({ open, mode, initialBook, onCancel, onSav
         title: initialBook.title, author: initialBook.author, isbn: initialBook.isbn,
         category: initialBook.category, stock: initialBook.stock, price: initialBook.price,
         cover_url: initialBook.cover_url || '',
+        is_alive: toAliveFormValue(initialBook.is_alive),
       });
     }
     return JSON.stringify(INITIAL_VALUES);
@@ -93,6 +111,7 @@ export default function BookFormModal({ open, mode, initialBook, onCancel, onSav
       stock: initialBook?.stock ?? 0,
       price: initialBook?.price ?? 0,
       cover_url: norm(initialBook?.cover_url) || '',
+      is_alive: toAliveFormValue(initialBook?.is_alive),
     };
     if (isEdit) {
       return (
@@ -102,14 +121,16 @@ export default function BookFormModal({ open, mode, initialBook, onCancel, onSav
         (current.category || '') !== snapshot.category ||
         Number(current.stock) !== snapshot.stock ||
         Number(current.price) !== snapshot.price ||
-        norm(current.cover_url) !== snapshot.cover_url
+        norm(current.cover_url) !== snapshot.cover_url ||
+        (current.is_alive ?? 'unknown') !== snapshot.is_alive
       );
     }
     // 新增：判断是否任何非默认字段被修改
     return (
       !!norm(current.title) || !!norm(current.author) || !!norm(current.isbn) ||
       (current.category && current.category !== '其他') ||
-      Number(current.stock) !== 0 || Number(current.price) !== 0 || !!norm(current.cover_url)
+      Number(current.stock) !== 0 || Number(current.price) !== 0 || !!norm(current.cover_url) ||
+(current.is_alive ?? 'unknown') !== 'unknown'
     );
   }
 
@@ -141,6 +162,7 @@ export default function BookFormModal({ open, mode, initialBook, onCancel, onSav
         stock: Number(values.stock),
         price: Number(values.price),
         cover_url: values.cover_url ? values.cover_url.trim() : '',
+        is_alive: normalizeIsAliveValue(values.is_alive),
       };
       setSubmitting(true);
       try {
@@ -221,8 +243,16 @@ export default function BookFormModal({ open, mode, initialBook, onCancel, onSav
             { required: true, whitespace: true, message: '请输入作者' },
             { max: 50, message: '作者长度不能超过 50 个字符' },
           ]}
+          extra="多位作者请用「 / 」分隔，如：金庸 / 古龙"
         >
           <Input placeholder="请输入作者" maxLength={50} allowClear />
+        </Form.Item>
+        <Form.Item name="is_alive" label="作者状态">
+          <Radio.Group>
+            <Radio value="alive">在世</Radio>
+            <Radio value="deceased">已故</Radio>
+            <Radio value="unknown">未知</Radio>
+          </Radio.Group>
         </Form.Item>
         <Form.Item
           name="isbn"

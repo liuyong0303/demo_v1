@@ -8,6 +8,16 @@ function normalizeISBN(raw) {
   return raw.replace(/-/g, '').trim();
 }
 
+// is_alive 规整：true/1 -> 1, false/0 -> 0, 其他（undefined/null/非法）-> null
+function normalizeIsAlive(raw) {
+  if (raw === true || raw === 1 || raw === '1') return 1;
+  if (raw === false || raw === 0 || raw === '0') return 0;
+  if (raw === undefined || raw === null || raw === '') return null;
+  // 非法值：降级为 null 并 warn
+  console.warn('[validateBookPayload] invalid is_alive value, fallback to null:', raw);
+  return null;
+}
+
 function validateBookPayload(body) {
   const errors = {};
   const data = {};
@@ -69,6 +79,9 @@ function validateBookPayload(body) {
     data.cover_url = null;
   }
 
+  // is_alive（可选，三态）：true/1 -> 1, false/0 -> 0, undefined/null/非法 -> null
+  data.is_alive = normalizeIsAlive(body.is_alive);
+
   return { errors, data };
 }
 
@@ -83,9 +96,10 @@ function toExternal(book) {
     stock: book.stock,
     price: Number((book.price_cents / 100).toFixed(2)),
     cover_url: book.cover_url,
+    is_alive: book.is_alive === 1 ? 1 : (book.is_alive === 0 ? 0 : null),
     created_at: book.created_at,
     updated_at: book.updated_at,
   };
 }
 
-module.exports = { CATEGORIES, validateBookPayload, toExternal, normalizeISBN };
+module.exports = { CATEGORIES, validateBookPayload, toExternal, normalizeISBN, normalizeIsAlive };

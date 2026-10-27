@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   Button, Input, Select, Table, Space, Popconfirm, Tag, Skeleton, App as AntdApp, Empty, Tooltip, theme,
 } from 'antd';
-import { PlusOutlined, ReloadOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined, HeartFilled } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { booksApi } from '../api';
 import { CATEGORY_OPTIONS, DEFAULT_PAGE_SIZE, PLACEHOLDER_COVER } from '../constants';
@@ -120,6 +120,61 @@ export default function BooksPage() {
     }
   }
 
+  // 作者列渲染：is_alive===1 时在每位非空作者片段右上角叠加绿色爱心
+  function renderAuthorCell(_, row) {
+    const raw = typeof row?.author === 'string' ? row.author : '';
+    if (!raw) return raw || '';
+    const alive = row?.is_alive === 1;
+    const parts = raw.split(' / ');
+    const nodes = [];
+    parts.forEach((part, idx) => {
+      if (idx > 0) nodes.push(<span key={`sep-${idx}`}>{' / '}</span>);
+      if (!part) return;
+      if (alive) {
+        nodes.push(
+          <span
+            key={`a-${idx}`}
+            className="author-segment author-segment--alive"
+            style={{ position: 'relative', display: 'inline-block', paddingRight: 2, marginRight: 2 }}
+          >
+            {part}
+            <Tooltip title="该作者仍在世">
+              <HeartFilled
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  top: -2,
+                  right: -8,
+                  fontSize: 11,
+                  color: token.colorSuccess,
+                  cursor: 'default',
+                  pointerEvents: 'auto',
+                }}
+              />
+            </Tooltip>
+            <span
+              className="sr-only"
+              style={{
+                position: 'absolute',
+                width: 1,
+                height: 1,
+                padding: 0,
+                margin: -1,
+                overflow: 'hidden',
+                clip: 'rect(0,0,0,0)',
+                whiteSpace: 'nowrap',
+                border: 0,
+              }}
+            >（在世）</span>
+          </span>
+        );
+      } else {
+        nodes.push(<span key={`a-${idx}`} className="author-segment">{part}</span>);
+      }
+    });
+    return <span className="author-cell">{nodes}</span>;
+  }
+
   const columns = [
     {
       title: '封面',
@@ -141,7 +196,7 @@ export default function BooksPage() {
         <a onClick={() => openDetail(row.id)}>{v}</a>
       ),
     },
-    { title: '作者', dataIndex: 'author' },
+    { title: '作者', dataIndex: 'author', render: renderAuthorCell, onCell: () => ({ style: { overflow: 'visible' } }) },
     { title: 'ISBN', dataIndex: 'isbn' },
     {
       title: '分类',
