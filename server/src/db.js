@@ -36,6 +36,15 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_borrow_returned ON borrow_records(returned_at);
 `);
 
+// 幂等迁移：为 books 表增加 is_alive 列（1=在世, 0=已故, NULL=未知）
+(function migrateIsAlive() {
+  const cols = db.prepare("PRAGMA table_info(books)").all();
+  const has = cols.some((c) => c.name === 'is_alive');
+  if (!has) {
+    db.exec("ALTER TABLE books ADD COLUMN is_alive TINYINT(1) NULL");
+  }
+})();
+
 // 种子数据：仅在 books 与 borrow_records 都为空时插入，保证多次启动不漂移
 (function seedIfEmpty() {
   const bookCount = db.prepare('SELECT COUNT(*) AS c FROM books').get().c;

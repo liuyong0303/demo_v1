@@ -52,7 +52,7 @@ router.get('/', (req, res) => {
     const total = db.prepare(`SELECT COUNT(*) AS c FROM books WHERE ${whereSql}`).get(...params).c;
     const rows = db
       .prepare(
-        `SELECT id, title, author, isbn, category, stock, price_cents, cover_url, created_at, updated_at
+        `SELECT id, title, author, isbn, category, stock, price_cents, cover_url, is_alive, created_at, updated_at
          FROM books WHERE ${whereSql}
          ORDER BY created_at DESC, id DESC
          LIMIT ? OFFSET ?`
@@ -106,8 +106,8 @@ router.post('/', (req, res) => {
       });
     }
     const stmt = db.prepare(`
-      INSERT INTO books (title, author, isbn, category, stock, price_cents, cover_url)
-      VALUES (@title, @author, @isbn, @category, @stock, @price_cents, @cover_url)
+      INSERT INTO books (title, author, isbn, category, stock, price_cents, cover_url, is_alive)
+      VALUES (@title, @author, @isbn, @category, @stock, @price_cents, @cover_url, @is_alive)
     `);
     const info = stmt.run(data);
     const row = db.prepare('SELECT * FROM books WHERE id = ?').get(info.lastInsertRowid);
@@ -146,7 +146,7 @@ router.put('/:id', (req, res) => {
     db.prepare(
       `UPDATE books
          SET title=@title, author=@author, isbn=@isbn, category=@category,
-             stock=@stock, price_cents=@price_cents, cover_url=@cover_url,
+             stock=@stock, price_cents=@price_cents, cover_url=@cover_url, is_alive=@is_alive,
              updated_at=datetime('now')
        WHERE id=@id`
     ).run({ ...data, id });
