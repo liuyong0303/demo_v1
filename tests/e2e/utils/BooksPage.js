@@ -1,4 +1,5 @@
 const { expect } = require("@playwright/test");
+
 class BooksPage {
   constructor(page) {
     this.page = page;
@@ -94,7 +95,6 @@ class BooksPage {
 class BookFormModal {
   constructor(page) {
     this.page = page;
-    // 取当前可见的 .ant-modal
     this.modal = page.locator('.ant-modal:visible').last();
     this.titleInput = this.modal.getByPlaceholder('请输入书名');
     this.authorInput = this.modal.getByPlaceholder('请输入作者');
@@ -104,13 +104,25 @@ class BookFormModal {
     this.stockInput = numbers.nth(0);
     this.priceInput = numbers.nth(1);
     this.coverInput = this.modal.getByPlaceholder(/封面/);
-    // 用 hasText 正则匹配按钮（AntD 按钮内可能被插入空格/span，文本间含空白）
+    // 作者状态单选（在世 / 已故 / 未知）
+    this.aliveRadio = this.modal.locator('.ant-radio-wrapper', { hasText: '在世' });
+    this.deceasedRadio = this.modal.locator('.ant-radio-wrapper', { hasText: '已故' });
+    this.unknownRadio = this.modal.locator('.ant-radio-wrapper', { hasText: '未知' });
+    this.aliveRadioInput = this.aliveRadio.locator('input');
+    this.deceasedRadioInput = this.deceasedRadio.locator('input');
+    this.unknownRadioInput = this.unknownRadio.locator('input');
     this.saveBtn = this.modal.locator('.ant-modal-footer button').filter({ hasText: /保\s*存/ });
     this.cancelBtn = this.modal.locator('.ant-modal-footer button').filter({ hasText: /取\s*消/ });
     this.leaveConfirm = page.locator('.ant-modal-confirm:visible').last();
   }
   async waitVisible() { await this.modal.waitFor({ state: 'visible' }); }
   async waitHidden() { await this.modal.waitFor({ state: 'hidden' }); }
+
+  async selectAliveStatus(status /* 'alive' | 'deceased' | 'unknown' */) {
+    if (status === 'alive') await this.aliveRadio.click();
+    else if (status === 'deceased') await this.deceasedRadio.click();
+    else await this.unknownRadio.click();
+  }
 
   async fill(data) {
     if (data.title !== undefined) await this.titleInput.fill(data.title);
@@ -125,6 +137,7 @@ class BookFormModal {
     if (data.stock !== undefined) await this.stockInput.fill(String(data.stock));
     if (data.price !== undefined) await this.priceInput.fill(String(data.price));
     if (data.cover_url !== undefined) await this.coverInput.fill(data.cover_url);
+    if (data.is_alive !== undefined) await this.selectAliveStatus(data.is_alive);
   }
   async submit() { await this.saveBtn.click(); }
   async cancelDirty() {
